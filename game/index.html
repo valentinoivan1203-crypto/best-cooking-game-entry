@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rush Hour Kitchen</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+  <!-- HUD -->
+  <header id="hud">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M24 4 L40 14 L40 34 L24 44 L8 34 L8 14 Z" fill="#ffcf3f"/><path d="M24 10 L34 16 L34 32 L24 38 L14 32 L14 16 Z" fill="#c0392b"/><text x="24" y="29" text-anchor="middle" font-size="16" font-weight="bold" fill="#fff">R</text></svg>
+      </span>
+      <span class="brand-name">RUSH HOUR<br>KITCHEN</span>
+    </div>
+    <div class="hud-stat" id="hud-score">
+      <span class="hud-label">SCORE</span>
+      <span class="hud-value" id="score">0</span>
+    </div>
+    <div class="hud-stat hud-timer" id="hud-timer">
+      <span class="hud-label">SHIFT</span>
+      <span class="hud-value" id="shift-timer">3:00</span>
+    </div>
+    <div class="hud-stat" id="hud-served">
+      <span class="hud-label">SERVED</span>
+      <span class="hud-value" id="served">0</span>
+    </div>
+    <div class="hud-stat" id="hud-streak">
+      <span class="hud-label">STREAK</span>
+      <span class="hud-value" id="streak">x1</span>
+    </div>
+    <div class="hud-stat" id="hud-lives">
+      <span class="hud-label">LIVES</span>
+      <span class="hud-value lives" id="lives">&#10084;&#10084;&#10084;</span>
+    </div>
+    <div class="hud-buttons">
+      <button id="btn-pause" class="hud-btn" type="button" title="Pause (P)">II</button>
+      <button id="btn-mute" class="hud-btn" type="button" title="Sound on/off">&#9834;</button>
+    </div>
+  </header>
+
+  <!-- Order board -->
+  <section id="order-board" aria-label="Order board">
+    <div class="board-title">ORDER BOARD</div>
+    <div id="orders"></div>
+  </section>
+
+  <!-- Kitchen -->
+  <main id="kitchen">
+    <section id="stations" aria-label="Cooking stations">
+      <div class="station" id="stove">
+        <div class="station-title">STOVE <span class="station-hint">cook patty, egg, pasta</span></div>
+        <div class="burners">
+          <button class="burner" id="burner-0" type="button" aria-label="Burner 1"></button>
+          <button class="burner" id="burner-1" type="button" aria-label="Burner 2"></button>
+        </div>
+      </div>
+      <div class="station" id="board">
+        <div class="station-title">CHOPPING BOARD <span class="station-hint">chop lettuce, tomato</span></div>
+        <div class="slots">
+          <button class="slot" id="slot-0" type="button" aria-label="Chopping slot 1"></button>
+          <button class="slot" id="slot-1" type="button" aria-label="Chopping slot 2"></button>
+        </div>
+      </div>
+      <div class="hand" id="hand">
+        <div class="hand-label">IN HAND</div>
+        <div class="hand-item" id="hand-item"><span class="hand-empty">empty</span></div>
+      </div>
+    </section>
+
+    <section id="counter" aria-label="Ingredient counter">
+      <div class="counter-title">INGREDIENTS <span class="counter-hint">click or press 1&ndash;8</span></div>
+      <div id="ingredients"></div>
+    </section>
+
+    <section id="plate-area" aria-label="Plate">
+      <div class="plate-title">YOUR PLATE</div>
+      <div id="plate">
+        <div class="plate-dish" id="plate-dish"></div>
+        <div class="plate-base"></div>
+      </div>
+      <div id="plate-need" class="plate-need"></div>
+      <div class="plate-actions">
+        <button id="btn-bin" class="action-btn bin" type="button" title="Clear the plate (Backspace)">BIN</button>
+        <button id="btn-serve" class="action-btn serve" type="button" title="Serve the matching order (Enter)">SERVE &#8594;</button>
+      </div>
+    </section>
+  </main>
+
+  <footer id="help-bar">
+    <span><b>1&ndash;8</b> pick ingredient</span>
+    <span><b>Space</b> cook / chop / take</span>
+    <span><b>Enter</b> serve</span>
+    <span><b>Backspace</b> clear plate</span>
+    <span><b>P</b> pause</span>
+  </footer>
+</div>
+
+<!-- Overlay: start / pause / game over -->
+<div id="overlay" class="overlay">
+  <div class="overlay-card" id="overlay-card"></div>
+</div>
+
+<!-- Toast messages -->
+<div id="toast" class="toast" aria-live="polite"></div>
+
+<!-- Ingredient icons (inline SVG symbols, drawn by hand, no external files) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ing-bun" viewBox="0 0 64 64">
+      <path d="M10 38 Q10 16 32 16 Q54 16 54 38 Z" fill="#e8a94e" stroke="#b97f2e" stroke-width="2"/>
+      <path d="M8 38 L56 38 L56 46 Q56 50 50 50 L14 50 Q8 50 8 46 Z" fill="#d98f3a" stroke="#b97f2e" stroke-width="2"/>
+      <ellipse cx="24" cy="26" rx="2.5" ry="1.6" fill="#f7d9a0"/>
+      <ellipse cx="34" cy="22" rx="2.5" ry="1.6" fill="#f7d9a0"/>
+      <ellipse cx="42" cy="29" rx="2.5" ry="1.6" fill="#f7d9a0"/>
+    </symbol>
+    <symbol id="ing-patty" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="32" rx="26" ry="16" fill="#6b3a1f" stroke="#4a2510" stroke-width="2"/>
+      <ellipse cx="32" cy="30" rx="22" ry="12" fill="#7d4526"/>
+      <circle cx="22" cy="30" r="2" fill="#5a2f18"/>
+      <circle cx="40" cy="34" r="2" fill="#5a2f18"/>
+      <circle cx="32" cy="26" r="2" fill="#5a2f18"/>
+    </symbol>
+    <symbol id="ing-patty-raw" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="32" rx="26" ry="16" fill="#c25b6b" stroke="#8e3a46" stroke-width="2"/>
+      <ellipse cx="32" cy="30" rx="22" ry="12" fill="#d0707f"/>
+      <circle cx="22" cy="30" r="2" fill="#a84a58"/>
+      <circle cx="40" cy="34" r="2" fill="#a84a58"/>
+    </symbol>
+    <symbol id="ing-lettuce" viewBox="0 0 64 64">
+      <path d="M8 40 Q4 22 20 16 Q26 8 34 14 Q44 6 50 16 Q60 22 54 38 Q48 52 32 50 Q14 52 8 40 Z" fill="#5cb85c" stroke="#3d8b3d" stroke-width="2"/>
+      <path d="M14 38 Q22 26 32 30 Q42 26 50 36" fill="none" stroke="#3d8b3d" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M20 44 Q28 36 36 42" fill="none" stroke="#7ed07e" stroke-width="2.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ing-tomato" viewBox="0 0 64 64">
+      <circle cx="32" cy="36" r="20" fill="#e23b2e" stroke="#a81f14" stroke-width="2"/>
+      <path d="M32 18 L28 10 L32 14 L36 8 L36 18 Z" fill="#3d8b3d"/>
+      <ellipse cx="25" cy="30" rx="5" ry="3" fill="#f47a6d" opacity="0.8"/>
+    </symbol>
+    <symbol id="ing-cheese" viewBox="0 0 64 64">
+      <path d="M32 8 L56 44 L8 44 Z" fill="#ffcf3f" stroke="#d9a41f" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="30" cy="34" r="3" fill="#e8b62a"/>
+      <circle cx="40" cy="38" r="2.5" fill="#e8b62a"/>
+      <circle cx="24" cy="40" r="2" fill="#e8b62a"/>
+    </symbol>
+    <symbol id="ing-pasta" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="34" rx="26" ry="14" fill="#f2c14e" stroke="#cf9a2a" stroke-width="2"/>
+      <path d="M14 32 Q24 22 32 32 Q40 42 50 32" fill="none" stroke="#d9a41f" stroke-width="3" stroke-linecap="round"/>
+      <path d="M18 38 Q28 30 36 38 Q44 44 50 38" fill="none" stroke="#d9a41f" stroke-width="3" stroke-linecap="round"/>
+      <path d="M22 28 Q30 20 40 28" fill="none" stroke="#e8b62a" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ing-sauce" viewBox="0 0 64 64">
+      <path d="M26 8 L38 8 L38 18 L44 24 L44 54 Q44 58 38 58 L26 58 Q20 58 20 54 L20 24 L26 18 Z" fill="#c0392b" stroke="#7e241a" stroke-width="2"/>
+      <rect x="24" y="30" width="16" height="16" rx="2" fill="#f5f0e6"/>
+      <circle cx="32" cy="38" r="4" fill="#c0392b"/>
+      <rect x="26" y="4" width="12" height="6" rx="2" fill="#7e241a"/>
+    </symbol>
+    <symbol id="ing-egg" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="34" rx="26" ry="18" fill="#fdf6e3" stroke="#d9c9a3" stroke-width="2"/>
+      <circle cx="32" cy="34" r="11" fill="#ffcf3f" stroke="#d9a41f" stroke-width="2"/>
+      <circle cx="29" cy="31" r="3" fill="#ffe27a"/>
+    </symbol>
+    <symbol id="ing-egg-raw" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="34" rx="24" ry="18" fill="#f7ead0" stroke="#c9a86a" stroke-width="2"/>
+      <ellipse cx="32" cy="34" rx="16" ry="12" fill="#fdf6e3" stroke="#d9c9a3" stroke-width="1.5"/>
+      <circle cx="32" cy="34" r="7" fill="#ffcf3f"/>
+    </symbol>
+  </defs>
+</svg>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>
